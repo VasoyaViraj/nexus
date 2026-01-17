@@ -1,34 +1,37 @@
-import dotenv from "dotenv"
-import connectDB from "./src/db/db.js"
-import { app } from './src/app.js'
-import User from './src/models/User.model.js'
-import Department from './src/models/Department.model.js'
-import Service from './src/models/Service.model.js'
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import connectDB from "./src/db/db.js";
+import User from "./src/models/User.model.js";
+import Department from "./src/models/Department.model.js";
+import Service from "./src/models/Service.model.js";
 
 dotenv.config({
     path: './.env'
-})
+});
 
-// Seed initial data
 const seedDatabase = async () => {
     try {
+        console.log("🌱 Starting database seed...");
+
         // Check if admin exists
-        const adminExists = await User.findOne({ role: 'ADMIN' })
+        const adminExists = await User.findOne({ role: 'ADMIN' });
         if (!adminExists) {
-            console.log('Creating admin user...')
+            console.log('Creating admin user...');
             await User.create({
                 email: 'admin@nexus.gov',
                 password: 'admin123',
                 name: 'System Admin',
                 role: 'ADMIN'
-            })
-            console.log('Admin user created: admin@nexus.gov / admin123')
+            });
+            console.log('Admin user created: admin@nexus.gov / admin123');
+        } else {
+            console.log('Admin user already exists.');
         }
 
         // Check if departments exist
-        const deptCount = await Department.countDocuments()
+        const deptCount = await Department.countDocuments();
         if (deptCount === 0) {
-            console.log('Creating default departments...')
+            console.log('Creating default departments...');
 
             const healthcareDept = await Department.create({
                 name: 'Healthcare',
@@ -36,7 +39,7 @@ const seedDatabase = async () => {
                 code: 'HEALTHCARE',
                 endpointBaseUrl: process.env.HEALTHCARE_URL || 'http://localhost:5001',
                 icon: 'heart-pulse'
-            })
+            });
 
             const agricultureDept = await Department.create({
                 name: 'Agriculture',
@@ -44,11 +47,12 @@ const seedDatabase = async () => {
                 code: 'AGRICULTURE',
                 endpointBaseUrl: process.env.AGRICULTURE_URL || 'http://localhost:5002',
                 icon: 'leaf'
-            })
+            });
 
-            console.log('Default departments created')
+            console.log('Default departments created');
 
             // Create default services
+            console.log('Creating default services...');
             await Service.create({
                 name: 'Book Appointment',
                 description: 'Schedule a medical appointment with a healthcare provider',
@@ -97,7 +101,7 @@ const seedDatabase = async () => {
                         placeholder: 'Describe your symptoms or reason for appointment'
                     }
                 ]
-            })
+            });
 
             await Service.create({
                 name: 'Agriculture Advisory',
@@ -143,47 +147,51 @@ const seedDatabase = async () => {
                         placeholder: 'Describe your agricultural problem or query in detail'
                     }
                 ]
-            })
+            });
 
-            console.log('Default services created')
+            console.log('Default services created');
 
             // Create department officers
-            const healthcareOfficer = await User.create({
+            console.log('Creating department officers...');
+            await User.create({
                 email: 'officer.health@nexus.gov',
                 password: 'officer123',
                 name: 'Dr. Health Officer',
                 role: 'DEPARTMENT_PERSON',
                 departmentId: healthcareDept._id
-            })
+            });
 
-            const agricultureOfficer = await User.create({
+            await User.create({
                 email: 'officer.agri@nexus.gov',
                 password: 'officer123',
                 name: 'Agri Officer',
                 role: 'DEPARTMENT_PERSON',
                 departmentId: agricultureDept._id
-            })
+            });
 
-            console.log('Department officers created')
-            console.log('  Healthcare: officer.health@nexus.gov / officer123')
-            console.log('  Agriculture: officer.agri@nexus.gov / officer123')
+            console.log('Department officers created');
+            console.log('  Healthcare: officer.health@nexus.gov / officer123');
+            console.log('  Agriculture: officer.agri@nexus.gov / officer123');
+        } else {
+            console.log('Departments already exist. Skipping default data creation.');
         }
 
+        console.log("✅ Database seed completed successfully.");
     } catch (error) {
-        console.error('Seed error:', error)
+        console.error('❌ Seed error:', error);
+        process.exit(1);
     }
-}
+};
 
-connectDB()
-    .then(async () => {
+const runSeed = async () => {
+    try {
+        await connectDB();
+        await seedDatabase();
+        process.exit(0);
+    } catch (error) {
+        console.error("❌ Failed to connect to database:", error);
+        process.exit(1);
+    }
+};
 
-        app.listen(process.env.PORT || 5000, () => {
-            console.log(`\n🚀 Nexus Gateway running at http://localhost:${process.env.PORT || 5000}`)
-            console.log(`   Frontend URL: ${process.env.FRONTEND_URL}`)
-            console.log(`   Healthcare: ${process.env.HEALTHCARE_URL}`)
-            console.log(`   Agriculture: ${process.env.AGRICULTURE_URL}\n`)
-        })
-    })
-    .catch((err) => {
-        console.log("MongoDB connection failed:", err)
-    })
+runSeed();

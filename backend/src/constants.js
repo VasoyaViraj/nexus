@@ -1,1 +1,1 @@
-export const DB_NAME = "studysnaps"
+export const DB_NAME = "nexus"
