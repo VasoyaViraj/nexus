@@ -2,13 +2,23 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { citizenAPI } from '../../lib/api';
 import Layout from '../../components/layout/Layout';
-import { ArrowLeft, ArrowRight, Settings, Sparkles } from 'lucide-react';
+import { 
+    ArrowLeft, 
+    ArrowRight, 
+    FileText, 
+    Clock, 
+    ChevronRight,
+    Search,
+    Info,
+    CheckCircle
+} from 'lucide-react';
 
 export default function DepartmentServices() {
     const { id } = useParams();
     const [department, setDepartment] = useState(null);
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         loadData();
@@ -26,22 +36,42 @@ export default function DepartmentServices() {
         }
     };
 
-    const getIcon = (iconName) => {
-        const icons = {
-            'heart-pulse': '❤️',
-            'leaf': '🌿',
-            'calendar-plus': '📅',
-            'message-circle': '💬',
-            'file-text': '📄',
-        };
-        return icons[iconName] || '📋';
+    const serviceConfig = {
+        'heart-pulse': { emoji: '🏥', bg: 'bg-rose-50', border: 'border-rose-200' },
+        'leaf': { emoji: '🌿', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+        'calendar-plus': { emoji: '📅', bg: 'bg-purple-50', border: 'border-purple-200' },
+        'message-circle': { emoji: '💬', bg: 'bg-cyan-50', border: 'border-cyan-200' },
+        'file-text': { emoji: '📄', bg: 'bg-blue-50', border: 'border-blue-200' },
+        'default': { emoji: '📋', bg: 'bg-gray-50', border: 'border-gray-200' }
     };
+
+    const getConfig = (iconName) => serviceConfig[iconName] || serviceConfig.default;
+
+    const departmentIcons = {
+        'heart-pulse': '🏥',
+        'leaf': '🌿',
+        'building': '🏛️',
+        'book': '📚',
+        'car': '🚗',
+        'home': '🏠',
+    };
+
+    const getDeptIcon = (iconName) => departmentIcons[iconName] || '🏛️';
+
+    const filteredServices = services.filter(service =>
+        service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     if (loading) {
         return (
             <Layout>
-                <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                <div className="flex flex-col items-center justify-center h-64 gap-4">
+                    <div className="relative">
+                        <div className="w-10 h-10 border-4 border-gray-100 rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-10 h-10 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                    </div>
+                    <p className="text-gray-500 text-sm">Loading services...</p>
                 </div>
             </Layout>
         );
@@ -50,10 +80,18 @@ export default function DepartmentServices() {
     if (!department) {
         return (
             <Layout>
-                <div className="text-center py-12">
-                    <h2 className="text-xl font-semibold text-gray-900">Department not found</h2>
-                    <Link to="/departments" className="text-blue-600 hover:text-blue-700 mt-4 inline-block">
-                        ← Back to Departments
+                <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Info className="text-gray-400" size={32} />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Department not found</h2>
+                    <p className="text-gray-500 mb-6">The department you're looking for doesn't exist or has been removed.</p>
+                    <Link 
+                        to="/departments" 
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                    >
+                        <ArrowLeft size={18} />
+                        Back to Departments
                     </Link>
                 </div>
             </Layout>
@@ -62,84 +100,160 @@ export default function DepartmentServices() {
 
     return (
         <Layout>
-            {/* Back Button */}
-            <Link
-                to="/departments"
-                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 font-medium transition-colors group"
-            >
-                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                Back to Departments
-            </Link>
+            {/* Breadcrumb Navigation */}
+            <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+                <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+                <ChevronRight size={14} />
+                <Link to="/departments" className="hover:text-blue-600 transition-colors">Departments</Link>
+                <ChevronRight size={14} />
+                <span className="text-gray-900 font-medium">{department.name}</span>
+            </nav>
 
-            {/* Department Header with Gradient */}
-            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-3xl p-6 lg:p-8 shadow-xl border border-blue-500/20 mb-8 animate-fade-in">
-                <div className="flex items-center gap-5">
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-5xl shadow-lg">
-                        {getIcon(department.icon)}
+            {/* Department Header */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center gap-5">
+                    <div className="w-16 h-16 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
+                        {getDeptIcon(department.icon)}
                     </div>
                     <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Sparkles className="text-white" size={24} />
-                            <h1 className="text-3xl lg:text-4xl font-bold text-white">{department.name}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">{department.name}</h1>
+                        <p className="text-gray-600 mt-1">
+                            {department.description || 'Access various services from this department'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2 text-gray-500">
+                            <FileText size={16} />
+                            <span>{services.length} services</span>
                         </div>
-                        <p className="text-blue-100 text-lg mt-1 max-w-2xl">{department.description || 'Access various services from this department'}</p>
+                        <div className="flex items-center gap-2 text-emerald-600">
+                            <CheckCircle size={16} />
+                            <span>Active</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Services Section */}
-            <div className="mb-6 animate-slide-up">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Available Services</h2>
-                <p className="text-gray-500">Select a service to proceed with your application</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-                {services.map((service, index) => (
-                    <Link
-                        key={service._id}
-                        to={`/services/${service._id}`}
-                        className="group bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1"
-                        style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                        <div className="flex items-start gap-5 mb-5">
-                            <div className="w-18 h-18 bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100 rounded-2xl flex items-center justify-center text-4xl shadow-md group-hover:scale-110 transition-transform">
-                                {getIcon(service.icon)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                                    {service.name}
-                                </h3>
-                                <p className="text-base text-gray-500 mt-2 line-clamp-2">
-                                    {service.description || 'Click to access this service'}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="pt-5 border-t border-gray-100 flex items-center justify-between">
-                            <span className="text-sm font-semibold text-blue-600 group-hover:text-blue-700 transition-colors">Apply Now</span>
-                            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                <ArrowRight className="text-blue-600 group-hover:translate-x-1 transition-transform" size={18} />
-                            </div>
-                        </div>
-                    </Link>
-                ))}
-            </div>
-
-            {services.length === 0 && (
-                <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-lg animate-fade-in">
-                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Settings className="text-gray-400" size={48} />
+            {/* Search and Services Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Available Services</h2>
+                    <p className="text-gray-500 text-sm mt-1">Select a service to apply</p>
+                </div>
+                
+                {services.length > 3 && (
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Search services..."
+                            className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64 text-sm"
+                        />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">No services available</h3>
-                    <p className="text-gray-500 mb-6">This department has no active services at the moment</p>
+                )}
+            </div>
+
+            {/* Services Grid */}
+            {filteredServices.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredServices.map((service) => {
+                        const config = getConfig(service.icon);
+                        return (
+                            <Link
+                                key={service._id}
+                                to={`/services/${service._id}`}
+                                className="group bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all"
+                            >
+                                <div className="flex items-start gap-4">
+                                    <div className={`w-12 h-12 ${config.bg} ${config.border} border rounded-lg flex items-center justify-center text-xl flex-shrink-0 group-hover:scale-105 transition-transform`}>
+                                        {config.emoji}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                            {service.name}
+                                        </h3>
+                                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                            {service.description || 'Click to access this service'}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {/* Service meta info */}
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                                        <span className="flex items-center gap-1">
+                                            <Clock size={12} />
+                                            {service.processingTime || '3-5 days'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-sm font-medium text-blue-600 group-hover:gap-2 transition-all">
+                                        Apply
+                                        <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                                    </div>
+                                </div>
+                            </Link>
+                        );
+                    })}
+                </div>
+            ) : services.length > 0 ? (
+                // Search returned no results
+                <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                    <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Search className="text-gray-400" size={24} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No services found</h3>
+                    <p className="text-gray-500 mb-4">No results for "{searchTerm}"</p>
+                    <button
+                        onClick={() => setSearchTerm('')}
+                        className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                    >
+                        Clear search
+                    </button>
+                </div>
+            ) : (
+                // No services at all
+                <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                    <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <FileText className="text-gray-400" size={24} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No services available</h3>
+                    <p className="text-gray-500 mb-6">This department has no active services at the moment.</p>
                     <Link
                         to="/departments"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
                     >
                         <ArrowLeft size={18} />
                         Browse Other Departments
                     </Link>
                 </div>
             )}
+
+            {/* Help Section */}
+            {/* <div className="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5">
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Info className="text-blue-600" size={20} />
+                        </div>
+                        <div>
+                            <h3 className="font-medium text-gray-900">Need help choosing a service?</h3>
+                            <p className="text-sm text-gray-600">
+                                Contact the {department.name} help desk for guidance
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex gap-3">
+                        <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            View FAQs
+                        </button>
+                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                            Contact Support
+                        </button>
+                    </div>
+                </div>
+            </div> */}
         </Layout>
     );
 }

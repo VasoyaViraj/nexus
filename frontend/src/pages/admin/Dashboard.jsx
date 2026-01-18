@@ -4,9 +4,8 @@ import { adminAPI } from '../../lib/api';
 import Layout from '../../components/layout/Layout';
 import {
     Building2, Settings, Users, FileText,
-    TrendingUp, CheckCircle2, Clock, XCircle,
-    ArrowUpRight, ArrowDownRight, BarChart3,
-    Activity
+    CheckCircle2, Clock, XCircle,
+    ChevronRight, AlertCircle
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -30,13 +29,19 @@ export default function AdminDashboard() {
 
     const getStatusBadge = (status) => {
         const styles = {
-            PENDING: 'bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border border-amber-200',
-            ACCEPTED: 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 border border-green-200',
-            REJECTED: 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 border border-red-200',
+            PENDING: 'bg-yellow-50 text-yellow-800 border border-yellow-200',
+            ACCEPTED: 'bg-green-50 text-green-800 border border-green-200',
+            REJECTED: 'bg-red-50 text-red-800 border border-red-200',
+        };
+        const icons = {
+            PENDING: <Clock size={12} />,
+            ACCEPTED: <CheckCircle2 size={12} />,
+            REJECTED: <XCircle size={12} />,
         };
         return (
-            <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${styles[status] || 'bg-gray-100 text-gray-700'}`}>
-                {status}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium ${styles[status] || 'bg-gray-50 text-gray-700 border border-gray-200'}`}>
+                {icons[status]}
+                {status.charAt(0) + status.slice(1).toLowerCase()}
             </span>
         );
     };
@@ -45,7 +50,10 @@ export default function AdminDashboard() {
         return (
             <Layout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                    <div className="flex items-center gap-3 text-gray-600">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                        <span>Loading dashboard...</span>
+                    </div>
                 </div>
             </Layout>
         );
@@ -53,133 +61,145 @@ export default function AdminDashboard() {
 
     return (
         <Layout>
-            {/* Header */}
-            <div className="mb-10 animate-fade-in">
-                <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 rounded-3xl p-8 lg:p-10 shadow-xl border border-purple-500/20">
-                    <div className="flex items-center gap-4 mb-3">
-                        <Activity className="text-white" size={36} />
-                        <h1 className="text-4xl lg:text-5xl font-bold text-white">Admin Dashboard</h1>
+            {/* Simple Header */}
+            <div className="mb-8">
+                {/* <div className="border-l-4 border-blue-600 pl-4"> */}
+                    <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                {/* </div> */}
+            </div>
+
+            {/* Stats Grid - Clean Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600">Total Departments</p>
+                            <p className="text-3xl font-semibold text-gray-900 mt-1">
+                                {stats?.departments?.total || 0}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-2">
+                                <span className="text-green-700 font-medium">{stats?.departments?.active || 0}</span> active
+                            </p>
+                        </div>
+                        <div className="p-2.5 bg-blue-50 rounded-lg">
+                            <Building2 className="text-blue-600" size={22} />
+                        </div>
                     </div>
-                    <p className="text-purple-100 text-xl mt-3">System overview and management</p>
+                </div>
+
+                <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600">Total Services</p>
+                            <p className="text-3xl font-semibold text-gray-900 mt-1">
+                                {stats?.services?.total || 0}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-2">
+                                <span className="text-green-700 font-medium">{stats?.services?.active || 0}</span> active
+                            </p>
+                        </div>
+                        <div className="p-2.5 bg-blue-50 rounded-lg">
+                            <Settings className="text-blue-600" size={22} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600">Total Users</p>
+                            <p className="text-3xl font-semibold text-gray-900 mt-1">
+                                {stats?.users?.total || 0}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-2">Registered citizens</p>
+                        </div>
+                        <div className="p-2.5 bg-blue-50 rounded-lg">
+                            <Users className="text-blue-600" size={22} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm text-gray-600">Total Requests</p>
+                            <p className="text-3xl font-semibold text-gray-900 mt-1">
+                                {stats?.requests?.total || 0}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-2">
+                                <span className="text-yellow-700 font-medium">{stats?.requests?.pending || 0}</span> pending
+                            </p>
+                        </div>
+                        <div className="p-2.5 bg-blue-50 rounded-lg">
+                            <FileText className="text-blue-600" size={22} />
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 animate-slide-up">
-                <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl border border-gray-100 hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 mb-3">Total Departments</p>
-                            <p className="text-4xl font-extrabold text-gray-900 mt-2">{stats?.departments?.total || 0}</p>
-                            <p className="text-sm text-green-600 font-semibold mt-3 flex items-center gap-1">
-                                <CheckCircle2 size={14} />
-                                {stats?.departments?.active || 0} active
-                            </p>
-                        </div>
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <Building2 className="text-white" size={28} />
+            {/* Request Status Summary - Subtle Colors */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-8">
+                <div className="px-5 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">Request Status Summary</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                    <div className="p-5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-yellow-50 rounded">
+                                <Clock className="text-yellow-600" size={20} />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-semibold text-gray-900">{stats?.requests?.pending || 0}</p>
+                                <p className="text-sm text-gray-600">Pending Review</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl border border-gray-100 hover:border-purple-200 transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 mb-3">Total Services</p>
-                            <p className="text-4xl font-extrabold text-gray-900 mt-2">{stats?.services?.total || 0}</p>
-                            <p className="text-sm text-green-600 font-semibold mt-3 flex items-center gap-1">
-                                <CheckCircle2 size={14} />
-                                {stats?.services?.active || 0} active
-                            </p>
-                        </div>
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <Settings className="text-white" size={28} />
+                    <div className="p-5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-green-50 rounded">
+                                <CheckCircle2 className="text-green-600" size={20} />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-semibold text-gray-900">{stats?.requests?.accepted || 0}</p>
+                                <p className="text-sm text-gray-600">Approved</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl border border-gray-100 hover:border-green-200 transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 mb-3">Total Users</p>
-                            <p className="text-4xl font-extrabold text-gray-900 mt-2">{stats?.users?.total || 0}</p>
-                            <p className="text-sm text-gray-500 font-medium mt-3">Registered</p>
-                        </div>
-                        <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <Users className="text-white" size={28} />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl border border-gray-100 hover:border-amber-200 transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 mb-3">Total Requests</p>
-                            <p className="text-4xl font-extrabold text-gray-900 mt-2">{stats?.requests?.total || 0}</p>
-                            <p className="text-sm text-amber-600 font-semibold mt-3 flex items-center gap-1">
-                                <Clock size={14} />
-                                {stats?.requests?.pending || 0} pending
-                            </p>
-                        </div>
-                        <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <FileText className="text-white" size={28} />
+                    <div className="p-5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-red-50 rounded">
+                                <XCircle className="text-red-600" size={20} />
+                            </div>
+                            <div>
+                                <p className="text-2xl font-semibold text-gray-900">{stats?.requests?.rejected || 0}</p>
+                                <p className="text-sm text-gray-600">Rejected</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Request Stats with Gradients */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-fade-in">
-                <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 rounded-3xl p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between mb-4">
-                        <Clock className="opacity-90" size={36} />
-                        <ArrowUpRight size={24} className="opacity-70" />
-                    </div>
-                    <p className="text-amber-100 font-medium mb-2">Pending Requests</p>
-                    <p className="text-5xl font-extrabold">{stats?.requests?.pending || 0}</p>
-                </div>
-                <div className="bg-gradient-to-br from-green-500 via-green-600 to-green-700 rounded-3xl p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between mb-4">
-                        <CheckCircle2 className="opacity-90" size={36} />
-                        <ArrowUpRight size={24} className="opacity-70" />
-                    </div>
-                    <p className="text-green-100 font-medium mb-2">Accepted Requests</p>
-                    <p className="text-5xl font-extrabold">{stats?.requests?.accepted || 0}</p>
-                </div>
-                <div className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 rounded-3xl p-8 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div className="flex items-center justify-between mb-4">
-                        <XCircle className="opacity-90" size={36} />
-                        <ArrowDownRight size={24} className="opacity-70" />
-                    </div>
-                    <p className="text-red-100 font-medium mb-2">Rejected Requests</p>
-                    <p className="text-5xl font-extrabold">{stats?.requests?.rejected || 0}</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Requests by Department */}
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300">
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-100">
-                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <BarChart3 className="text-blue-600" size={24} />
-                            Requests by Department
-                        </h2>
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <div className="px-5 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-medium text-gray-900">Requests by Department</h2>
                     </div>
-                    <div className="p-8">
+                    <div className="p-5">
                         {stats?.requestsByDepartment?.length > 0 ? (
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 {stats.requestsByDepartment.map((item, index) => {
                                     const maxCount = Math.max(...stats.requestsByDepartment.map(d => d.count));
                                     const percentage = (item.count / maxCount) * 100;
                                     return (
-                                        <div key={index} className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-700 font-medium">{item.departmentName}</span>
-                                                <span className="font-bold text-gray-900 text-lg">{item.count}</span>
+                                        <div key={index}>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <span className="text-sm text-gray-700">{item.departmentName}</span>
+                                                <span className="text-sm font-medium text-gray-900">{item.count}</span>
                                             </div>
-                                            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                                            <div className="w-full h-2 bg-gray-100 rounded">
                                                 <div
-                                                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-1000 shadow-sm"
+                                                    className="h-full bg-blue-600 rounded"
                                                     style={{ width: `${percentage}%` }}
                                                 />
                                             </div>
@@ -188,70 +208,97 @@ export default function AdminDashboard() {
                                 })}
                             </div>
                         ) : (
-                            <p className="text-center text-gray-500 py-8">No data available</p>
+                            <div className="text-center py-8 text-gray-500">
+                                <AlertCircle className="mx-auto mb-2 text-gray-400" size={24} />
+                                <p className="text-sm">No data available</p>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* Recent Requests */}
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300">
-                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-8 py-6 border-b border-gray-100">
-                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <FileText className="text-indigo-600" size={24} />
-                            Recent Requests
-                        </h2>
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <div className="px-5 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-medium text-gray-900">Recent Requests</h2>
                     </div>
                     <div className="divide-y divide-gray-100">
-                        {stats?.recentRequests?.slice(0, 5).map((request, index) => (
-                            <div key={request._id} className="p-6 hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-gray-900 truncate">{request.serviceId?.name}</p>
-                                        <p className="text-sm text-gray-500 mt-1 truncate">{request.citizenId?.name}</p>
+                        {stats?.recentRequests?.slice(0, 5).map((request) => (
+                            <div key={request._id} className="px-5 py-4 hover:bg-gray-50">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                            {request.serviceId?.name}
+                                        </p>
+                                        <p className="text-sm text-gray-500 truncate mt-0.5">
+                                            {request.citizenId?.name}
+                                        </p>
                                     </div>
                                     {getStatusBadge(request.status)}
                                 </div>
                             </div>
                         ))}
                         {(!stats?.recentRequests || stats.recentRequests.length === 0) && (
-                            <p className="text-center text-gray-500 py-12">No recent requests</p>
+                            <div className="text-center py-8 text-gray-500">
+                                <AlertCircle className="mx-auto mb-2 text-gray-400" size={24} />
+                                <p className="text-sm">No recent requests</p>
+                            </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in">
-                <Link
-                    to="/admin/departments"
-                    className="group bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1"
-                >
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <Building2 className="text-white" size={32} />
-                    </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-lg mb-3">Manage Departments</h3>
-                    <p className="text-base text-gray-500">Add, edit, or disable departments</p>
-                </Link>
-                <Link
-                    to="/admin/services"
-                    className="group bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-xl hover:border-purple-200 transition-all duration-300 transform hover:-translate-y-1"
-                >
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <Settings className="text-white" size={32} />
-                    </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-purple-600 transition-colors text-lg mb-3">Manage Services</h3>
-                    <p className="text-base text-gray-500">Configure services and forms</p>
-                </Link>
-                <Link
-                    to="/admin/users"
-                    className="group bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-xl hover:border-green-200 transition-all duration-300 transform hover:-translate-y-1"
-                >
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <Users className="text-white" size={32} />
-                    </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-green-600 transition-colors text-lg mb-3">Manage Users</h3>
-                    <p className="text-base text-gray-500">Add officers and manage users</p>
-                </Link>
+            {/* Quick Actions - Simple Links */}
+            <div className="mt-8">
+                <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Link
+                        to="/admin/departments"
+                        className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-gray-100 rounded group-hover:bg-blue-100 transition-colors">
+                                <Building2 className="text-gray-600 group-hover:text-blue-600" size={20} />
+                            </div>
+                            <div>
+                                <p className="font-medium text-gray-900">Manage Departments</p>
+                                <p className="text-sm text-gray-500">Add, edit, or disable</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-gray-400 group-hover:text-blue-600" size={20} />
+                    </Link>
+
+                    <Link
+                        to="/admin/services"
+                        className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-gray-100 rounded group-hover:bg-blue-100 transition-colors">
+                                <Settings className="text-gray-600 group-hover:text-blue-600" size={20} />
+                            </div>
+                            <div>
+                                <p className="font-medium text-gray-900">Manage Services</p>
+                                <p className="text-sm text-gray-500">Configure services</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-gray-400 group-hover:text-blue-600" size={20} />
+                    </Link>
+
+                    <Link
+                        to="/admin/users"
+                        className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:border-blue-300 hover:bg-blue-50/50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-gray-100 rounded group-hover:bg-blue-100 transition-colors">
+                                <Users className="text-gray-600 group-hover:text-blue-600" size={20} />
+                            </div>
+                            <div>
+                                <p className="font-medium text-gray-900">Manage Users</p>
+                                <p className="text-sm text-gray-500">Officers and citizens</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-gray-400 group-hover:text-blue-600" size={20} />
+                    </Link>
+                </div>
             </div>
         </Layout>
     );
